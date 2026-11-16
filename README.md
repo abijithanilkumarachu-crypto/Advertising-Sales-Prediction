@@ -218,3 +218,18 @@ It also provides practical experience in transforming a Machine Learning noteboo
 **Author:** Abijith Anil
 
 **Project:** Advertising Sales Prediction Using Machine Learning
+
+
+## Application Screenshots
+
+### 1. Home Dashboard
+![Home Dashboard](screenshots/home_dashboard.png)
+
+### 2. Sales Prediction
+![Sales Prediction](screenshots/sales_prediction.png)
+
+### 3. Model Comparison
+![Model Comparison](screenshots/model_comparison.png)
+
+### 4. Dataset Explorer
+![Dataset Explorer](screenshots/dataset_explorer.png)
