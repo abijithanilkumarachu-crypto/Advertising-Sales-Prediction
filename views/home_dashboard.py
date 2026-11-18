@@ -1,18 +1,20 @@
 """
 Home Dashboard View: Project Overview & Key Metrics.
+Configured for Indian presentations with INR (₹) budget simulation.
 """
 
 import streamlit as st
 import plotly.express as px
-from utils.ui_components import render_page_header, render_kpi_card
+from utils.ui_components import render_page_header, render_kpi_card, render_transparency_note
 from utils.data_loader import SELECTED_MODEL_METRICS, get_feature_importance_df
 from utils.model_loader import predict_single_sales
+from utils.currency import DEFAULT_USD_TO_INR, format_inr_short
 
 
 def show():
     render_page_header(
         title="Advertising Sales Prediction Dashboard",
-        subtitle="Machine Learning solution for marketing budget optimization and sales forecasting.",
+        subtitle="Machine Learning solution for marketing budget optimization and sales forecasting with INR (₹) inputs.",
         badge="Production Model: Polynomial Regression (Deg 2)"
     )
 
@@ -56,16 +58,17 @@ def show():
         st.subheader("📌 Executive Summary")
         st.markdown(
             """
-            This application enables marketing teams to forecast product sales from advertising investments
-            across **TV**, **Radio**, and **Newspaper** channels using a validated Machine Learning pipeline.
+            This application enables marketing executives to forecast product sales from promotional investments
+            across **Television**, **Radio**, and **Newspaper** channels using a validated Machine Learning pipeline.
 
             #### Key Highlights:
-            - **Non-Linear Synergies:** Traditional linear regression assumes channels act independently. 
-              The selected **Polynomial Regression (Degree 2)** model captures real-world multiplier effects (e.g., TV and Radio reinforcement).
-            - **Superior Validation:** Outperformed Simple Linear Regression, Multiple Linear Regression, and Random Forest 
-              across both test-set metrics ($R^2 = 98.69\%$) and 5-fold cross-validation ($R^2 = 97.78\%$).
-            - **Data-Driven Allocation:** Identifies that spending on TV and Radio yields over 98% of predictable sales volume, 
-              while Newspaper spending provides minimal marginal returns.
+            - **Non-Linear Multi-Channel Synergies:** Traditional linear models assume channels act in isolation. 
+              The selected **Polynomial Regression (Degree 2)** model captures real-world compounding effects (e.g., TV exposure reinforcing Radio recall).
+            - **Superior Empirical Validation:** Outperformed Simple Linear Regression, Multiple Linear Regression, and Random Forest 
+              across both holdout testing ($R^2 = 98.69\%$) and 5-fold cross-validation ($R^2 = 97.78\%$).
+            - **Data-Driven Budget Allocation:** Identifies that spending on TV and Radio accounts for over 98% of predictable sales volume, 
+              while Newspaper spending yields negligible marginal returns.
+            - **Indian Market Adaptation:** Supports direct advertising budget inputs in **Indian Rupees (₹)** with an integrated conversion layer to the model's scale.
             """
         )
 
@@ -80,7 +83,7 @@ def show():
             orientation="h",
             text=df_fi["Importance"].apply(lambda x: f"{x * 100:.1f}%"),
             color="Importance",
-            color_continuous_scale="Blues",
+            color_continuous_scale=[[0.0, "#174E4A"], [1.0, "#65C6AE"]],
             height=280
         )
         fig.update_layout(
@@ -92,23 +95,51 @@ def show():
             yaxis_title="",
             yaxis=dict(autorange="reversed"),
             coloraxis_showscale=False,
-            font=dict(family="Inter, sans-serif", color="#f1f5f9")
+            font=dict(family="Inter, sans-serif", color="#AABBB9")
         )
+        fig.update_xaxes(showgrid=True, gridcolor="#22343A")
         st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("---")
 
-    # Bottom Row: Quick Model Verification Simulator
-    st.subheader("⚡ Quick Verification Simulator")
-    st.markdown("Try the notebook baseline scenario to verify instant model response:")
+    # Bottom Row: Quick Model Verification Simulator in INR
+    st.subheader("⚡ Quick Verification Simulator (INR ₹)")
+    st.markdown(
+        f"Test the model using the notebook baseline budget converted to Indian Rupees "
+        f"*(Exchange Rate: 1 USD ≈ ₹{DEFAULT_USD_TO_INR:,.1f})*:"
+    )
 
     q1, q2, q3, q4 = st.columns([1, 1, 1, 1.2])
     with q1:
-        tv_input = st.number_input("TV Budget ($k)", value=150.0, step=10.0, min_value=0.0, max_value=500.0)
+        tv_input = st.number_input(
+            "TV Budget (₹)",
+            value=13_500_000,
+            step=500_000,
+            min_value=0,
+            max_value=50_000_000,
+            help=f"Default: ₹1.35 Cr (equivalent to $150k USD at ₹{DEFAULT_USD_TO_INR}/USD)"
+        )
+        st.caption(f"Selected: **{format_inr_short(tv_input)}**")
     with q2:
-        radio_input = st.number_input("Radio Budget ($k)", value=25.0, step=5.0, min_value=0.0, max_value=200.0)
+        radio_input = st.number_input(
+            "Radio Budget (₹)",
+            value=2_250_000,
+            step=250_000,
+            min_value=0,
+            max_value=20_000_000,
+            help=f"Default: ₹22.50 Lakh (equivalent to $25k USD at ₹{DEFAULT_USD_TO_INR}/USD)"
+        )
+        st.caption(f"Selected: **{format_inr_short(radio_input)}**")
     with q3:
-        news_input = st.number_input("Newspaper Budget ($k)", value=20.0, step=5.0, min_value=0.0, max_value=200.0)
+        news_input = st.number_input(
+            "Newspaper Budget (₹)",
+            value=1_800_000,
+            step=200_000,
+            min_value=0,
+            max_value=20_000_000,
+            help=f"Default: ₹18.00 Lakh (equivalent to $20k USD at ₹{DEFAULT_USD_TO_INR}/USD)"
+        )
+        st.caption(f"Selected: **{format_inr_short(news_input)}**")
     with q4:
         st.markdown("**Sales Forecast**")
         res = predict_single_sales(tv_input, radio_input, news_input)
@@ -116,6 +147,9 @@ def show():
 
     if res["is_out_of_bounds"]:
         st.caption("⚠️ *Note: One or more input budgets exceed the historical dataset training range.*")
+
+    # Transparency Note
+    render_transparency_note(DEFAULT_USD_TO_INR)
 
 
 if __name__ == "__main__":

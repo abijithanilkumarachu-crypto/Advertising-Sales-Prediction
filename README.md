@@ -113,18 +113,27 @@ The model was selected based on its performance on the test dataset and its cros
 
 ## 8. Streamlit Web Application – AdSales AI
 
-The trained model is integrated into an interactive, multi-page web application.
+The trained model is integrated into an interactive, multi-page web application customized for professional corporate presentations with Indian Rupee (INR / ₹) budget simulations.
 
 ### Key Features
 
+- **Indian Rupee (₹) Adaptation:** Full support for promotional budgets entered in Indian Rupees (Lakhs and Crores), dynamically converted to the model's scale.
 - **Home Dashboard:** Displays model performance, project summary and advertising channel analysis.
-- **Sales Prediction:** Interactive budget controls for generating sales predictions.
-- **Model Comparison:** Compares the four regression algorithms using evaluation metrics.
-- **Dataset Explorer:** Allows users to explore dataset information, distributions and relationships.
-- **Batch Prediction:** Upload a CSV file and generate predictions for multiple budget allocations.
-- **About Project:** Provides project objectives, methodology, key features and limitations.
+- **Sales Prediction:** Interactive budget sliders and presets for generating instant sales forecasts.
+- **Model Comparison:** Compares the four regression algorithms using evaluation metrics and cross-validation bars.
+- **Dataset Explorer:** Allows users to explore historical dataset information, distributions, correlation heatmaps, and feature importance.
+- **Batch Prediction (INR):** Upload a CSV file containing promotional budgets in INR and generate predictions for multiple budget allocations.
+- **About Project:** Provides project objectives, mathematical methodology, key features, and market calibration notes.
 
-## 9. Project Structure
+### Currency Conversion Layer
+
+The original Machine Learning model was trained on the `Advertising.csv` dataset, where expenditure is measured in thousands of US dollars ($k USD).
+To enable native budget simulation for the Indian market without retraining the model, a currency conversion layer normalizes INR amounts prior to inference:
+
+$$\text{Model Input} = \frac{\text{INR Amount}}{\text{USD-to-INR Exchange Rate} \times 1000}$$
+
+*Default Exchange Rate:* `1 USD ≈ ₹90.0` (Centrally configurable in `utils/currency.py`).  
+*Example:* `₹1,35,00,000 / (90.0 × 1000) = 150.0` (model units).
 
 ```text
 Advertising-Sales-Prediction/
@@ -134,6 +143,7 @@ Advertising-Sales-Prediction/
 │
 ├── utils/
 │   ├── __init__.py
+│   ├── currency.py
 │   ├── data_loader.py
 │   ├── model_loader.py
 │   └── ui_components.py

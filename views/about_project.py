@@ -1,15 +1,17 @@
 """
 About Project View: Objectives, Methodology, Mathematical Framework, Features & Limitations.
+Documentation including the Indian market adaptation and currency conversion layer.
 """
 
 import streamlit as st
-from utils.ui_components import render_page_header
+from utils.ui_components import render_page_header, render_transparency_note
+from utils.currency import DEFAULT_USD_TO_INR, TRANSPARENCY_NOTE
 
 
 def show():
     render_page_header(
         title="About Advertising Sales Prediction",
-        subtitle="Comprehensive technical documentation, methodology, mathematical formulation, and model limitations.",
+        subtitle="Comprehensive technical documentation, methodology, mathematical formulation, and market adaptation.",
         badge="Documentation & Architecture"
     )
 
@@ -17,7 +19,7 @@ def show():
         "🎯 Objectives & Overview",
         "📐 Mathematical Formulation",
         "🔄 Methodology & Workflow",
-        "⚠️ Limitations & Considerations"
+        "⚠️ Limitations & Market Calibration"
     ])
 
     with tab_overview:
@@ -25,13 +27,13 @@ def show():
         st.markdown(
             """
             In commercial marketing, allocating promotional budgets across diverse media channels 
-            is critical for maximizing return on marketing investment.
+            is critical for maximizing return on marketing investment (ROMI).
 
             **Core Objectives:**
-            - **Quantify Impact:** Analyze the historical empirical relationship between marketing spend across **TV**, **Radio**, and **Newspaper** and the resulting **Sales** volume.
+            - **Quantify Channel Impact:** Analyze the historical empirical relationship between marketing spend across **TV**, **Radio**, and **Newspaper** and the resulting **Sales** volume.
             - **Detect Cross-Channel Synergy:** Determine whether multi-channel campaigns exhibit compounding multiplier effects compared to isolated single-channel promotions.
             - **Compare Candidate Algorithms:** Rigorously evaluate multiple regression paradigms under identical validation criteria.
-            - **Interactive Decision Support:** Deliver an accessible, high-performance web dashboard allowing non-technical stakeholders to test budget allocation scenarios in real time.
+            - **Indian Market Decision Support:** Deliver an accessible, high-performance web dashboard allowing business stakeholders in India to test budget allocations directly in **Indian Rupees (₹)**.
             """
         )
 
@@ -41,37 +43,46 @@ def show():
         with c1:
             st.markdown(
                 """
+                - **Indian Rupee (₹) Input Layer:** Native support for budget amounts in Crores and Lakhs with automatic conversion to model units.
                 - **Interactive Budget Simulator:** Synchronized sliders and numeric inputs with instant visual sales forecasting.
-                - **Preset Budget Scenarios:** One-click comparisons against baseline, average, TV-heavy, and high-synergy mixes.
-                - **Marginal ROI Analyzer:** Dynamic sensitivity analysis revealing the projected incremental sales for +$10k invested in each channel.
+                - **Preset Budget Scenarios:** One-click comparisons against baseline, average, TV-heavy, and high-synergy marketing mixes.
+                - **Marginal ROI Analyzer:** Dynamic sensitivity analysis revealing the projected incremental sales for +₹10 Lakh invested in each channel.
                 """
             )
         with c2:
             st.markdown(
                 """
-                - **Automated Batch Inference:** Bulk CSV file processing with automated column validation, data cleansing, and enriched exports.
+                - **Automated Batch Inference (INR):** Bulk CSV file processing with automated column validation, data cleansing, and enriched exports.
                 - **Transparent Model Comparison:** Direct side-by-side benchmark of MAE, MSE, RMSE, Test $R^2$, and 5-Fold Cross-Validation.
-                - **Interactive Visual Analytics:** Rich Plotly charts including correlation heatmaps, regression scatter plots, and budget allocation donuts.
+                - **Interactive Visual Analytics:** High-contrast Plotly charts including correlation heatmaps, regression scatter plots, and budget allocation donuts.
+                - **Market Transparency:** Explicit documentation of model assumptions and currency conversion parameters.
                 """
             )
 
     with tab_math:
-        st.subheader("Mathematical Formulation of the Selected Model")
+        st.subheader("Mathematical Formulation & Conversion Layer")
         st.markdown(
-            """
+            f"""
             The deployed production model uses **Polynomial Features (Degree 2) coupled with Ordinary Least Squares (OLS) Linear Regression**.
 
-            #### 1. Why Standard Multiple Linear Regression is Insufficient:
-            A standard multiple linear regression model assumes strictly additive and independent channel responses:
-            $$\\text{Sales} = \\beta_0 + \\beta_1(\\text{TV}) + \\beta_2(\\text{radio}) + \\beta_3(\\text{newspaper}) + \\epsilon$$
-            This fails to capture the common marketing phenomenon where consumer exposure across television reinforces radio recall (cross-channel synergy).
+            #### 1. Currency Conversion Layer (INR to Model Units):
+            The original dataset records advertising expenditures in **thousands of US dollars ($k USD)**.
+            To allow seamless operation in Indian Rupees (₹), all inputs are normalized prior to model inference using the formula:
+
+            $$\\text{{Model Input}} = \\frac{{\\text{{INR Amount}}}}{{\\text{{USD-to-INR Exchange Rate}} \\times 1000}}$$
+
+            **Worked Example:**
+            - At the configured exchange rate of **₹{DEFAULT_USD_TO_INR:,.1f} per USD**:
+            - An advertising budget of **₹1,35,00,000 (₹1.35 Crore)** is converted as:
+              $$\\text{{Model Input}} = \\frac{{13,500,000}}{{90.0 \\times 1000}} = \\frac{{13,500,000}}{{90,000}} = 150.0$$
+            - The value $150.0$ is passed directly to the model pipeline, producing the exact baseline prediction from the research notebook ($15.14\\text{{k units}}$).
 
             #### 2. Degree-2 Polynomial Expansion:
-            The input feature vector $\\mathbf{x} = [\\text{TV}, \\text{radio}, \\text{newspaper}]$ is expanded non-linearly into 9 terms (with bias excluded):
-            $$\\phi(\\mathbf{x}) = \\left[ \\text{TV},\\; \\text{radio},\\; \\text{newspaper},\\; \\text{TV}^2,\\; \\text{TV} \\cdot \\text{radio},\\; \\text{TV} \\cdot \\text{newspaper},\\; \\text{radio}^2,\\; \\text{radio} \\cdot \\text{newspaper},\\; \\text{newspaper}^2 \\right]$$
+            The input feature vector $\\mathbf{{x}} = [\\text{{TV}}, \\text{{radio}}, \\text{{newspaper}}]$ is expanded non-linearly into 9 terms (with bias excluded):
+            $$\\phi(\\mathbf{{x}}) = \\left[ \\text{{TV}},\\; \\text{{radio}},\\; \\text{{newspaper}},\\; \\text{{TV}}^2,\\; \\text{{TV}} \\cdot \\text{{radio}},\\; \\text{{TV}} \\cdot \\text{{newspaper}},\\; \\text{{radio}}^2,\\; \\text{{radio}} \\cdot \\text{{newspaper}},\\; \\text{{newspaper}}^2 \\right]$$
 
             #### 3. Prediction Equation:
-            $$\\widehat{\\text{Sales}} = \\beta_0 + \\sum_{k=1}^{9} \\beta_k \\phi_k(\\mathbf{x})$$
+            $$\\widehat{{\\text{{Sales}}}} = \\beta_0 + \\sum_{{k=1}}^{{9}} \\beta_k \\phi_k(\\mathbf{{x}})$$
 
             - **Intercept ($\\beta_0$):** $\\approx 4.9390$
             - **TV × Radio Synergy Term:** Positive weight of $+0.00111$, mathematically formalizing the multi-channel boost observed in empirical sales data.
@@ -97,24 +108,28 @@ def show():
                - Evaluated Simple Linear Regression, Multiple Linear Regression, Polynomial Regression, and Random Forest.
             5. **Model Serialization:**
                - Encapsulated preprocessor and regressor within an `sklearn.pipeline.Pipeline` and exported via `joblib`.
-            6. **Deployment:**
-               - Served via this modular Streamlit web application.
+            6. **Deployment & Currency Layer:**
+               - Served via this modular Streamlit web application with an integrated INR conversion pipeline.
             """
         )
 
     with tab_limits:
-        st.subheader("Project Limitations & Operating Boundaries")
+        st.subheader("Project Limitations & Market Calibration")
         st.markdown(
             """
-            In accordance with the findings documented in the original project analysis, users should note the following constraints:
+            In accordance with the findings documented in the original project analysis, users and interviewers should note the following constraints:
 
-            - **Compact Dataset Size:** The model was trained on 200 historical records. While performance on this sample is high ($R^2 = 98.69\%$), small datasets may not capture rare macroeconomic events.
+            - **Market Calibration Notice:** The model was trained on historical US advertising data and has not been specifically calibrated for the Indian advertising market.
+            - **Compact Dataset Size:** The model was trained on 200 historical records. While performance on this sample is high ($R^2 = 98.69\%$), small datasets may not capture complex macro-level shifts.
             - **Excluded Confounding Variables:** The dataset only tracks media expenditure. Real-world sales are influenced by other variables such as unit pricing, competitor discounting, promotions, seasonality, brand equity, and macroeconomic sentiment.
             - **Historical Market Calibration:** Historical consumer conversion rates may shift as digital media consumption habits evolve over time.
-            - **Extrapolation Boundaries:** Extreme budget extrapolations significantly beyond training ranges (e.g., TV > $350k or Radio > $60k) may produce diminishing-return divergence.
+            - **Extrapolation Boundaries:** Extreme budget extrapolations significantly beyond training ranges may produce diminishing-return divergence.
             - **Correlation vs. Causation:** Identified mathematical associations reflect statistical correlation and should be combined with domain judgment and controlled A/B experiments.
             """
         )
+
+    # Transparency Note
+    render_transparency_note(DEFAULT_USD_TO_INR)
 
 
 if __name__ == "__main__":
